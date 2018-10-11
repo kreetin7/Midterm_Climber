@@ -4,31 +4,33 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 //put on capsule player
-//first person controller of player model, handels movement and looking
+//first person controller of player model, handels movement, jumping and looking
+//(future ren when you ineveitably forget how to jump because your brain has a goldfish memory this is the script to look at) 
 public class PersonController : MonoBehaviour
 {
 	private Rigidbody rBody;
 
-	//public float gravity = 40f; 
+	public float gravity = 1f; 
 
 	public float moveSpeed = 20f;
 	public float lookSpeed = 100f;
-	public float jumpSpeed = 0.5f;
+	public float jumpSpeed = 10f;
+
+	
 
 	private Vector3 inputVector;
 
-	//public Transform Groundcheck;
-	//public float groundcheckRadius;
-	//public LayerMask whatisGrounded;
-	//private bool Grounded;
+	
 
 
-	//private Vector3 MoveDirection = Vector3.zero;
+	
 
 	// Use this for initialization
 	void Start()
 	{
 		rBody = GetComponent<Rigidbody>();
+
+	
 	}
 
 	// Update is called once per frame
@@ -49,20 +51,24 @@ public class PersonController : MonoBehaviour
 		inputVector = transform.forward * vertical * moveSpeed;
 		inputVector += transform.right * horizontal * moveSpeed;
 
-		//jump? 
+		//Jump
+		float up = -Input.GetAxis("Jump"); //getting the jump axis built into unity
 
-		float up = Input.GetAxis("Jump");
+		Debug.Log(up);
+		Ray jumpRay = new Ray(transform.position, Vector3.down); //ray definition
+		float jumpRaymaxDist = 1.5f; //distance def
+		Debug.DrawRay(jumpRay.origin, jumpRay.direction * jumpRaymaxDist, Color.magenta); //debugging so I can see it when it inevitably fails
+		if (Physics.Raycast(jumpRay, jumpRaymaxDist)) //cast that ray
+		{
+			Debug.Log("Grounded"); //making sure it works
+			inputVector = inputVector + transform.up * up * jumpSpeed; // pushing it to jump, thank god it works 
+		}
+		
 
-		inputVector -= transform.up * up * jumpSpeed;
+		
 
 		//gravity
-		//MoveDirection.y = gravity * Time.deltaTime; 
-
-
-
-
-
-
+	     inputVector.y += gravity; 
 
 
 	}
@@ -70,16 +76,10 @@ public class PersonController : MonoBehaviour
 	void FixedUpdate()
 	{
 		rBody.velocity = inputVector;
-		//grounded
-		/*Grounded = Physics2D.OverlapCircle(Groundcheck.position, groundcheckRadius, whatisGrounded);
 
-		if (Input.GetKeyDown(KeyCode.Space))
-		{
-			//no double-jump
-			if (Grounded)
-			{
-				rBody.velocity = new Vector2(rBody.velocity.x, jumpSpeed);
-			}
-		}*/
+
+		
 	}
+
+	
 }
