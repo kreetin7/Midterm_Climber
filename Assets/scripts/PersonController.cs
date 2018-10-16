@@ -20,7 +20,7 @@ public class PersonController : MonoBehaviour
 
 	private Vector3 inputVector;
 
-	
+	 float upDownRotation;
 
 
 	
@@ -41,12 +41,18 @@ public class PersonController : MonoBehaviour
 		float mouseY = Input.GetAxis("Mouse Y") * lookSpeed * Time.deltaTime;
 
 		transform.Rotate(0f, -mouseX, 0f);
-		Camera.main.transform.localEulerAngles += new Vector3(mouseY, 0f, 0f);
-		Camera.main.transform.localEulerAngles -= new Vector3(0f, 0f, Camera.main.transform.localEulerAngles.z);
+		Camera.main.transform.localEulerAngles += new Vector3(-mouseY, 0f, 0f);
+		
+		upDownRotation -= mouseY;
+		upDownRotation = Mathf.Clamp(upDownRotation, -80, 80); //clamp vertical look rotation between -80 and 80 degrees
+	
+		Camera.main.transform.localEulerAngles = new Vector3(upDownRotation,0f,0f);
 
 		//movement
 		float horizontal = Input.GetAxis("Horizontal");
+		Debug.Log(horizontal);
 		float vertical = Input.GetAxis("Vertical");
+		Debug.Log(vertical);
 
 		inputVector = transform.forward * vertical * moveSpeed;
 		inputVector += transform.right * horizontal * moveSpeed;
@@ -56,12 +62,12 @@ public class PersonController : MonoBehaviour
 
 		Debug.Log(up);
 		Ray jumpRay = new Ray(transform.position, Vector3.down); //ray definition
-		float jumpRaymaxDist = 1.5f; //distance def
+		float jumpRaymaxDist = 1.1f; //distance def
 		Debug.DrawRay(jumpRay.origin, jumpRay.direction * jumpRaymaxDist, Color.magenta); //debugging so I can see it when it inevitably fails
 		if (Physics.Raycast(jumpRay, jumpRaymaxDist)) //cast that ray
 		{
 			Debug.Log("Grounded"); //making sure it works
-			inputVector = inputVector + transform.up * up * jumpSpeed; // pushing it to jump, thank god it works 
+			inputVector += transform.up * up * jumpSpeed; // pushing it to jump, thank god it works 
 		}
 		
 
@@ -69,7 +75,11 @@ public class PersonController : MonoBehaviour
 
 		//gravity
 	     inputVector.y += gravity; 
-
+		if (Input.GetMouseButton(0))
+		{
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false; //hide the cursor as well, just to be safe
+		}
 
 	}
 
