@@ -16,21 +16,25 @@ public class PersonController : MonoBehaviour
 	public float lookSpeed = 100f;
 	public float jumpSpeed = 10f;
 
+	public float jumpForce = 2f;
+
+	private bool grounded;
+
 	
 
 	private Vector3 inputVector;
 
 	 float upDownRotation;
 
-
-	
+	private AudioSource collisionaudio;
 
 	// Use this for initialization
 	void Start()
 	{
 		rBody = GetComponent<Rigidbody>();
+		collisionaudio = GetComponent<AudioSource>();
 
-	
+
 	}
 
 	// Update is called once per frame
@@ -40,7 +44,7 @@ public class PersonController : MonoBehaviour
 		float mouseX = Input.GetAxis("Mouse X") * lookSpeed * Time.deltaTime;
 		float mouseY = Input.GetAxis("Mouse Y") * lookSpeed * Time.deltaTime;
 
-		transform.Rotate(0f, -mouseX, 0f);
+		transform.Rotate(0f, mouseX, 0f);
 		Camera.main.transform.localEulerAngles += new Vector3(-mouseY, 0f, 0f);
 		
 		upDownRotation -= mouseY;
@@ -60,21 +64,28 @@ public class PersonController : MonoBehaviour
 		//Jump
 		float up = -Input.GetAxis("Jump"); //getting the jump axis built into unity
 
-		Debug.Log(up);
+		//Debug.Log(up);
 		Ray jumpRay = new Ray(transform.position, Vector3.down); //ray definition
 		float jumpRaymaxDist = 1.1f; //distance def
 		Debug.DrawRay(jumpRay.origin, jumpRay.direction * jumpRaymaxDist, Color.magenta); //debugging so I can see it when it inevitably fails
-		if (Physics.Raycast(jumpRay, jumpRaymaxDist)) //cast that ray
+		grounded = Physics.Raycast(jumpRay, jumpRaymaxDist);
+		if (grounded) //cast that ray
 		{
 			Debug.Log("Grounded"); //making sure it works
-			inputVector += transform.up * up * jumpSpeed; // pushing it to jump, thank god it works 
+			//inputVector += transform.up * up * jumpSpeed; // pushing it to jump, thank god it works 
+			if (Input.GetKey(KeyCode.Space))
+			{
+				rBody.AddForce(transform.up * jumpForce, ForceMode.VelocityChange);
+			}
 		}
 		
 
 		
 
 		//gravity
-	     inputVector.y += gravity; 
+	     //inputVector.y += gravity; 
+		
+		
 		if (Input.GetMouseButton(0))
 		{
 			Cursor.lockState = CursorLockMode.Locked;
@@ -85,11 +96,17 @@ public class PersonController : MonoBehaviour
 
 	void FixedUpdate()
 	{
-		rBody.velocity = inputVector;
+		rBody.velocity = new Vector3(inputVector.x, rBody.velocity.y, inputVector.z);
 
-
+		if (grounded == false)
+		{
+			rBody.AddForce(Physics.gravity, ForceMode.Acceleration);
+		}
 		
 	}
 
-	
+	private void OnCollisionEnter(Collision other)
+	{
+		collisionaudio.PlayOneShot(collisionaudio.clip);
+	}
 }
